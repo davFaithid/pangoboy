@@ -12,6 +12,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #endif
+#include <fstream>
+using namespace std;
 
 //static const int windowWidth = 160;
 //static const int windowHeight = 144 ;
@@ -146,10 +148,11 @@ void GameBoy::RenderGame( )
 	//EmulationLoop() ;
  	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
  	glLoadIdentity();
- 	glRasterPos2i(-1, 1);
+	glRasterPos2i(-1, 1);
 	glPixelZoom(1, -1);
 	glViewport(0, 0, windowWidth, windowHeight);
- 	glDrawPixels(windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
+ //	glDrawPixels(windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
+	glDrawPixels(windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
 	SDL_GL_SwapWindow( window ) ;
 
 }
@@ -191,23 +194,35 @@ void GameBoy::SetKeyReleased(int key)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-bool GameBoy::CreateSDLWindow( )
+bool GameBoy::CreateSDLWindow()
 {
-	if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
-		return false ;
+		return false;
 	}
-	if( (window = SDL_CreateWindow("OpenGL Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, SDL_WINDOW_OPENGL)) == NULL )
+	if ((window = SDL_CreateWindow("PangoBoy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN)) == NULL)
 	{
-		return false ;
+		return false;
 	}
 
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
-	SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); 
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 	InitGL();
+	SDL_Event e;
+	while (SDL_PollEvent(&e)) {
+    	if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+				glTexParameteri(GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST);
+				glRasterPos2i(0, 0);
+				GLint iViewport[4];
+				glGetIntegerv(GL_VIEWPORT, iViewport);
+				glPixelZoom(iViewport[2] / e.window.data1, iViewport[3] / e.window.data2);
+				glDrawPixels(e.window.data1, e.window.data2, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
+			}
+			break;
 
-	return true ;
+		return true;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

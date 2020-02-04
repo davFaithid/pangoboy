@@ -893,9 +893,9 @@ void Emulator::RenderBackground(BYTE lcdControl)
 
 			switch(col)
 			{
-			case WHITE:	red = 255; green = 255 ; blue = 255; break ;
-			case LIGHT_GRAY:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
-			case DARK_GRAY:	red = 0x77; green = 0x77 ; blue = 0x77; break ;
+			case GREEN:	red = 137; green = 172 ; blue = 16; break ;
+			case LIGHT_GRAY:red = 97; green = 127 ; blue = 37; break ;
+			case DARK_GRAY:	red = 51; green = 94 ; blue = 51; break ;
 			}
 
 			int finaly = ReadMemory(0xFF44) ;
@@ -973,9 +973,10 @@ void Emulator::RenderSprites(BYTE lcdControl)
 
 					COLOUR col = GetColour(colourNum, TestBit(attributes,4)?0xFF49:0xFF48) ;
 
- 					// white is transparent for sprites.
- 					if (col == WHITE)
- 						continue ;
+ 					//// GREEN is transparent for sprites.
+ 					//if (col == GREEN)
+ 					//	continue ;
+
 
  					int red = 0;
  					int green = 0;
@@ -983,9 +984,9 @@ void Emulator::RenderSprites(BYTE lcdControl)
 
 					switch(col)
 					{
-					case WHITE:	red = 255; green = 255 ; blue = 255; break ;
-					case LIGHT_GRAY:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
-					case DARK_GRAY:	red = 0x77; green = 0x77 ; blue = 0x77; break ;
+					case GREEN:	red = 137; green = 172; blue = 16; break;
+					case LIGHT_GRAY:red = 97; green = 127; blue = 37; break;
+					case DARK_GRAY:	red = 51; green = 94; blue = 51; break;
 					}
 
  					int xPix = 0 - tilePixel ;
@@ -1020,7 +1021,7 @@ void Emulator::RenderSprites(BYTE lcdControl)
 
 Emulator::COLOUR Emulator::GetColour(BYTE colourNum, WORD address) const
 {
-	COLOUR res = WHITE ;
+	COLOUR res = GREEN ;
 	BYTE palette = ReadMemory(address) ;
 	int hi = 0 ;;
 	int lo = 0 ;
@@ -1040,7 +1041,7 @@ Emulator::COLOUR Emulator::GetColour(BYTE colourNum, WORD address) const
 
 	switch (colour)
 	{
-	case 0: res = WHITE ;break ;
+	case 0: res = GREEN ;break ;
 	case 1: res = LIGHT_GRAY ;break ;
 	case 2: res = DARK_GRAY ;break ;
 	case 3: res = BLACK ;break ;

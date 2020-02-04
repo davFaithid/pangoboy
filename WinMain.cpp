@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
 	printf(std::to_string(argc).c_str());
 	if(argc < 2) {
-		printf("Pass rom as argument 4Head.");
+		printf("Pass rom as argument.");
 		return 1;
 	}
 

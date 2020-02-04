@@ -57,7 +57,7 @@ public:
 private:
 		enum COLOUR
 		{
-			WHITE,
+			GREEN,
 			LIGHT_GRAY,
 			DARK_GRAY,
 			BLACK
