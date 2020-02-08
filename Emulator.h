@@ -55,7 +55,7 @@ public:
 		BYTE				m_ScreenData[144][160][3] ;
 
 private:
-		enum COLOUR
+		enum color
 		{
 			GREEN,
 			LIGHT_GRAY,
@@ -75,7 +75,7 @@ private:
 		void				DoGraphics			( int cycles ) ;
 		void				ServiceInterrupt	( int num) ;
 		void				DrawScanLine		( ) ;
-		COLOUR				GetColour			( BYTE colourNumber, WORD address ) const ;
+		color				Getcolor			( BYTE colorNumber, WORD address ) const ;
 		void				DoTimers			( int cycles ) ;
 		void				DoInput				( ) ;
 

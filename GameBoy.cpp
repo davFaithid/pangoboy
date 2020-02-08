@@ -6,8 +6,8 @@
 #define _NO_CRT_STDIO_INLINE 
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
-#include "SDL.h"
-#include "SDL_opengl.h"
+#include <SDL.h>
+#include <SDL_opengl.h>
 #else
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
@@ -15,11 +15,32 @@
 #include <fstream>
 using namespace std;
 
+//Original
 //static const int windowWidth = 160;
 //static const int windowHeight = 144 ;
 
-GLsizei windowWidth = 160;
-GLsizei windowHeight = 144;
+//SDL_Event e;
+//while (SDL_PollEvent(&e)) {
+//	if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+//		GLsizei windowWidth = 160;
+//		GLsizei windowHeight = 144;
+//		break;
+//	else {
+//		GLsizei windowWidth = 160;
+//		GLsizei windowHeight = 144;
+//		break;
+//	}
+//	}
+//}
+extern int windowWidth ; //Important, try best not to change
+extern int windowHeight ; //Important, try best not to change
+GLuint tex;
+int windowWidth = 160; //160
+int windowHeight = 144;//144
+
+//Upscale 4x... utter failure
+//GLsizei windowWidth = 640;
+//GLsizei windowHeight = 576;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -103,8 +124,8 @@ void GameBoy::StartEmulation( )
 	bool quit = false ;
 	SDL_Event event;
 
-	float fps = 59.73 ;
-	float interval = 1000 ;
+	double fps = 60; //59.73 ;
+	double interval = 700; //100; //1000 ;
 	interval /= fps ;
 
 	unsigned int time2 = SDL_GetTicks( ) ;
@@ -143,40 +164,38 @@ GameBoy::~GameBoy(void)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void GameBoy::RenderGame( )
+//void GameBoy::RenderGame()
+//{
+//	//EmulationLoop() ;
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	glMatrixMode(GL_NEAREST);
+//	glLoadIdentity();
+//	glRasterPos2i(-1, 1);
+//	glBindTexture(GL_TEXTURE_2D, tex);
+//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	glBindTexture(GL_TEXTURE_2D, 0);
+//	SDL_GL_SwapWindow(window);
+//}
+
+void GameBoy::RenderGame()
 {
-	//EmulationLoop() ;
- 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 	glLoadIdentity();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
 	glRasterPos2i(-1, 1);
 	glPixelZoom(1, -1);
 	glViewport(0, 0, windowWidth, windowHeight);
- //	glDrawPixels(windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
-	glDrawPixels(windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
-	SDL_GL_SwapWindow( window ) ;
-
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
+	SDL_GL_SwapWindow(window);
 }
 
-/*
-void windowResizeHandler(int windowWidth, int windowHeight) {
-	const float aspectRatio = ((float)windowWidth) / windowHeight;
-	float xSpan = 1; // Feel free to change this to any xSpan you need.
-	float ySpan = 1; // Feel free to change this to any ySpan you need.
-
-	if (aspectRatio > 1) {
-		// Width > Height, so scale xSpan accordinly.
-		xSpan *= aspectRatio;
-	}
-	else {
-		// Height >= Width, so scale ySpan accordingly.
-		ySpan = xSpan / aspectRatio;
-	}
-
-	glOrtho2D(-1 * xSpan, xSpan, -1 * ySpan, ySpan, -1, 1);
-
-	// Use the entire window for rendering.
-	glViewport(0, 0, windowWidth, windowHeight);
-}*/
+/*SDL_GL_SetSwapInterval(fps);
+	SDL_GL_SwapWindow(window);*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -206,23 +225,11 @@ bool GameBoy::CreateSDLWindow()
 	}
 
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_ACCELERATED);
 
 	InitGL();
-	SDL_Event e;
-	while (SDL_PollEvent(&e)) {
-    	if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-				glTexParameteri(GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST);
-				glRasterPos2i(0, 0);
-				GLint iViewport[4];
-				glGetIntegerv(GL_VIEWPORT, iViewport);
-				glPixelZoom(iViewport[2] / e.window.data1, iViewport[3] / e.window.data2);
-				glDrawPixels(e.window.data1, e.window.data2, GL_RGB, GL_UNSIGNED_BYTE, m_Emulator->m_ScreenData);
-			}
-			break;
 
-		return true;
-	}
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -230,18 +237,23 @@ bool GameBoy::CreateSDLWindow()
 void GameBoy::InitGL( )
 {
 	glViewport(0, 0, windowWidth, windowHeight);
-	glMatrixMode(GL_MODELVIEW);
+	glMatrixMode(GL_MODELVIEW | GL_NEAREST);
 	glLoadIdentity();
 	glOrtho(0, windowWidth, windowHeight, 0, -1.0, 1.0);
 	glClearColor(0, 0, 0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glShadeModel(GL_FLAT);
-
+	glGenTextures(1, &tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DITHER);
 	glDisable(GL_BLEND);
+	/*glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DITHER);
+	glEnable(GL_BLEND);*/
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -250,7 +262,7 @@ void GameBoy::HandleInput(SDL_Event& event)
 {
 	if( event.type == SDL_KEYDOWN )
 	{
-		int key = -1 ;
+		int key = -5 ;
 		switch( event.key.keysym.sym )
 		{
 			case SDLK_a : key = 4 ; break ;
@@ -261,8 +273,12 @@ void GameBoy::HandleInput(SDL_Event& event)
 			case SDLK_LEFT : key = 1 ; break ;
 			case SDLK_UP : key = 2 ; break ;
 			case SDLK_DOWN : key = 3 ; break ;
+			case SDLK_1: windowHeight = 144; windowWidth = 160; break;
+			case SDLK_2: windowHeight = 288; windowWidth = 320; break;
+			case SDLK_3: windowHeight = 432; windowWidth = 480; break;
+			case SDLK_4: windowHeight = 576; windowWidth = 640; break;
 		}
-		if (key != -1)
+		if (key != -5)
 		{
 			SetKeyPressed(key) ;
 		}
@@ -270,7 +286,7 @@ void GameBoy::HandleInput(SDL_Event& event)
 	//If a key was released
 	else if( event.type == SDL_KEYUP )
 	{
-		int key = -1 ;
+		int key = -5 ;
 		switch( event.key.keysym.sym )
 		{
 			case SDLK_a : key = 4 ; break ;
@@ -281,8 +297,12 @@ void GameBoy::HandleInput(SDL_Event& event)
 			case SDLK_LEFT : key = 1 ; break ;
 			case SDLK_UP : key = 2 ; break ;
 			case SDLK_DOWN : key = 3 ; break ;
+			case SDLK_1: windowHeight = 144; windowWidth = 160; break; //glScalef(windowWidth, windowHeight, 0);
+			case SDLK_2: windowHeight = 288; windowWidth = 320; break;
+			case SDLK_3: windowHeight = 432; windowWidth = 480; break;
+			case SDLK_4: windowHeight = 576; windowWidth = 640; break;
 		}
-		if (key != -1)
+		if (key != -5)
 		{
 			SetKeyReleased(key) ;
 		}

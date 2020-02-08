@@ -1,5 +1,13 @@
 #include "Config.h"
 #include "Emulator.h"
+#//include <config4cpp/Configuration.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+//using namespace config4cpp;
+using namespace std;
 
 #define VERTICAL_BLANK_SCAN_LINE 0x90
 #define VERTICAL_BLANK_SCAN_LINE_MAX 0x99
@@ -82,9 +90,9 @@ void Emulator::ResetScreen( )
  	{
  		for (int y = 0; y < 160; y++)
  		{
- 			m_ScreenData[x][y][0] = 255 ;
- 			m_ScreenData[x][y][1] = 255 ;
- 			m_ScreenData[x][y][2] = 255 ;
+ 			m_ScreenData[x][y][0] = 000 ;
+ 			m_ScreenData[x][y][1] = 000 ;
+ 			m_ScreenData[x][y][2] = 000 ;
  		}
  	}
 }
@@ -552,9 +560,9 @@ void Emulator::WriteByte(WORD address, BYTE data)
 
 		switch(timerVal)
 		{
-			case 0: clockSpeed = 1024 ; break ;
-			case 1: clockSpeed = 16; break ;
-			case 2: clockSpeed = 64 ;break ;
+			case 0: clockSpeed = 1024 ; break ; //1024
+			case 1: clockSpeed = 16; break ; //16
+			case 2: clockSpeed = 64 ;break ; //64
 			case 3: clockSpeed = 256 ;break ; // 256
 			default: assert(false); break ; // weird timer val
 		}
@@ -570,7 +578,7 @@ void Emulator::WriteByte(WORD address, BYTE data)
 	// FF44 shows which horizontal scanline is currently being draw. Writing here resets it
 	else if (address == 0xFF44)
 	{
-		m_Rom[0xFF44] = 0 ;
+		m_Rom[0xFF44] = 255 ;
 	}
 
 	else if (address == 0xFF45)
@@ -580,10 +588,10 @@ void Emulator::WriteByte(WORD address, BYTE data)
 	// DMA transfer
 	else if (address == 0xFF46)
 	{
-	    WORD newAddress = (data << 8) ;
-		for (int i = 0; i < 0xA0; i++)
+	    WORD newAddress = (data << 0x8) ;
+		for (int i = 0; i < 0x90; i++) //0xA0 for accuracy
 		{
-			m_Rom[0xFE00 + i] = ReadMemory(newAddress + i);
+			m_Rom[0xFE00 + i] = ReadMemory(newAddress + i );
 		}
 	}
 
@@ -651,7 +659,7 @@ void Emulator::IssueVerticalBlank( )
 	if (hack == 60)
 	{
 		//OutputDebugStr(STR::Format("Total VBlanks was: %d\n", vblankcount)) ;
-		vblankcount = 0 ;
+		vblankcount = 1 ;
 	}
 
 }
@@ -878,25 +886,59 @@ void Emulator::RenderBackground(BYTE lcdControl)
 			BYTE data1 = ReadMemory(tileLocation + line) ;
 			BYTE data2 = ReadMemory(tileLocation + line + 1) ;
 
-			int colourBit = xPos % 8 ;
-			colourBit -= 7 ;
-			colourBit *= -1 ;
+			int colorBit = xPos % 8 ;
+			colorBit -= 7 ;
+			colorBit *= -1 ;
 
-			int colourNum = BitGetVal(data2,colourBit) ;
-			colourNum <<= 1;
-			colourNum |= BitGetVal(data1,colourBit) ;
+			int colorNum = BitGetVal(data2,colorBit) ;
+			colorNum <<= 1;
+			colorNum |= BitGetVal(data1,colorBit) ;
 
-			COLOUR col = GetColour(colourNum, 0xFF47) ;
+			color col = Getcolor(colorNum, 0xFF47) ;
+			
+			/*const char* g;
+			const char* lg;
+			const char* dg;*/
+
 			int red = 0;
 			int green = 0;
 			int blue = 0;
 
 			switch(col)
 			{
-			case GREEN:	red = 137; green = 172 ; blue = 16; break ;
-			case LIGHT_GRAY:red = 97; green = 127 ; blue = 37; break ;
-			case DARK_GRAY:	red = 51; green = 94 ; blue = 51; break ;
+			case GREEN:	red = 137; green = 172; blue = 16; break;
+			case LIGHT_GRAY:red = 97; green = 127; blue = 37; break;
+			case DARK_GRAY:	red = 51; green = 94; blue = 51; break;
 			}
+			//std::string line2;
+			//std::ifstream ifile;
+			//ifile.open("palette.dat");
+			//if (ifile.is_open()) {
+			//	while (getline(ifile, line2)) {
+			//		
+			//		const char config[line2];
+		
+			//	std::stringstream is_file(config);
+
+			//	std::string line;
+			//	while (std::getline(is_file, line))
+			//	{
+			//		std::stringstream is_line(line);
+			//		std::string key;
+			//		if (std::getline(is_line, key, '='))
+			//		{
+			//			std::string value;
+			//			if (std::getline(is_line, value))
+			//				store_line(key, value);
+			//		}
+			//	}
+
+			/*switch (col)
+			{
+			case GREEN: g; break;
+			case LIGHT_GRAY:lg; break;
+			case DARK_GRAY:dg; break;
+			}*/
 
 			int finaly = ReadMemory(0xFF44) ;
 
@@ -961,26 +1003,30 @@ void Emulator::RenderSprites(BYTE lcdControl)
 
  				for (int tilePixel = 7; tilePixel >= 0; tilePixel--)
  				{
-					int colourbit = tilePixel ;
+					int colorbit = tilePixel ;
  					if (xFlip)
  					{
- 						colourbit -= 7 ;
- 						colourbit *= -1 ;
+ 						colorbit -= 7 ;
+ 						colorbit *= -1 ;
  					}
- 					int colourNum = BitGetVal(data2,colourbit) ;
- 					colourNum <<= 1;
- 					colourNum |= BitGetVal(data1,colourbit) ;
+ 					int colorNum = BitGetVal(data2,colorbit) ;
+ 					colorNum <<= 1;
+ 					colorNum |= BitGetVal(data1,colorbit) ;
 
-					COLOUR col = GetColour(colourNum, TestBit(attributes,4)?0xFF49:0xFF48) ;
+					color col = Getcolor(colorNum, TestBit(attributes,4)?0xFF49:0xFF48) ;
 
- 					//// GREEN is transparent for sprites.
- 					//if (col == GREEN)
- 					//	continue ;
+ 					// GREEN is transparent for sprites.
+ 					if (col == GREEN)
+ 					    //Find Fix Sooner Rather Than Later
+						continue ;
 
+					/*const char* g;
+					const char* lg;
+					const char* dg;*/
 
- 					int red = 0;
- 					int green = 0;
- 					int blue = 0;
+					int red = 0;
+					int green = 0;
+					int blue = 0;
 
 					switch(col)
 					{
@@ -988,6 +1034,22 @@ void Emulator::RenderSprites(BYTE lcdControl)
 					case LIGHT_GRAY:red = 97; green = 127; blue = 37; break;
 					case DARK_GRAY:	red = 51; green = 94; blue = 51; break;
 					}
+					/*std::string line;
+					std::ifstream rfile;
+					rfile.open("palette.dat");
+					if (rfile.is_open()) {
+						while (std::getline(rfile, line)) {
+							std::cout << line << std::endl;
+						}
+						rfile.close();
+					}
+
+					switch (col)
+					{
+					case GREEN: g; break;
+					case LIGHT_GRAY:lg; break;
+					case DARK_GRAY:dg; break;
+					}*/
 
  					int xPix = 0 - tilePixel ;
  					xPix += 7 ;
@@ -1019,14 +1081,14 @@ void Emulator::RenderSprites(BYTE lcdControl)
 
 //////////////////////////////////////////////////////////////////
 
-Emulator::COLOUR Emulator::GetColour(BYTE colourNum, WORD address) const
+Emulator::color Emulator::Getcolor(BYTE colorNum, WORD address) const
 {
-	COLOUR res = GREEN ;
+	color res = GREEN ;
 	BYTE palette = ReadMemory(address) ;
 	int hi = 0 ;;
 	int lo = 0 ;
 
-	switch (colourNum)
+	switch (colorNum)
 	{
 	case 0: hi = 1 ; lo = 0 ;break ;
 	case 1: hi = 3 ; lo = 2 ;break ;
@@ -1035,11 +1097,11 @@ Emulator::COLOUR Emulator::GetColour(BYTE colourNum, WORD address) const
 	default: assert(false) ; break ;
 	}
 
-	int colour = 0;
-	colour = BitGetVal(palette, hi) << 1;
-	colour |= BitGetVal(palette, lo) ;
+	int color = 0;
+	color = BitGetVal(palette, hi) << 1;
+	color |= BitGetVal(palette, lo) ;
 
-	switch (colour)
+	switch (color)
 	{
 	case 0: res = GREEN ;break ;
 	case 1: res = LIGHT_GRAY ;break ;
@@ -1295,4 +1357,3 @@ BYTE Emulator::GetLCDMode() const
 }
 
 //////////////////////////////////////////////////////////////////
-
