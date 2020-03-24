@@ -1,2 +1,6 @@
 Debug/
 .vs/
+emulator.log
+GameBoy.cbp
+palette.dat
+SDL.dll
