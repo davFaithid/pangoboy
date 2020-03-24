@@ -24,7 +24,7 @@ pangoboy rom
 
 # How well does it work?
 
-[![out.gif](https://i.postimg.cc/hPkMNyH5/out.gif)](https://postimg.cc/kByxbcMQ)
+[![out.gif](https://i.postimg.cc/hPkMNyH5/out.gif)](https://streamable.com/buysh)
 
 Well the codeslinger original supposedly "has about 95% compatibility but with no sound.", and mine well... it works. It can run games. Not even *close* to perfect at all though.
 
