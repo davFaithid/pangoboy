@@ -1057,7 +1057,7 @@ void Emulator::RenderSprites(BYTE lcdControl)
 
 //////////////////////////////////////////////////////////////////
 
-Emulator::color Emulator::Getcolor(BYTE colorNum, WORD address) const
+enum Emulator::color Emulator::Getcolor(BYTE colorNum, WORD address) const
 {
 	color res = GREEN;
 	BYTE palette = ReadMemory(address);

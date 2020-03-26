@@ -205,14 +205,15 @@ void GameBoy::SetKeyReleased(int key)
 	m_Emulator->KeyReleased(key);
 }
 
-void GameBoy::doSaveState()
-{
-	std::ofstream outfile("save.bin", std::ofstream::binary);
-	outfile.write((char*)&reg, sizeof(Registers));
-	/*outfile.write((char*)&bgMap, sizeof(bgMap));*/
-	/*outfile.write((char*)&tiles, sizeof(tiles));*/
-	outfile.write((char*)&sprites, sizeof(sprites));
-}
+//Implement in
+//void GameBoy::doSaveState()
+//{
+//	std::ofstream outfile("save.bin", std::ofstream::binary);
+//	outfile.write((char*)&reg, sizeof(Registers));
+//	/*outfile.write((char*)&bgMap, sizeof(bgMap));*/
+//	/*outfile.write((char*)&tiles, sizeof(tiles));*/
+//	outfile.write((char*)&sprites, sizeof(sprites));
+//}
 
 void GameBoy::HandleInput(SDL_Event& event)
 {
@@ -229,9 +230,9 @@ void GameBoy::HandleInput(SDL_Event& event)
 		case SDLK_LEFT: key = 1; break;
 		case SDLK_UP: key = 2; break;
 		case SDLK_DOWN: key = 3; break;
-		case SDLK_r: doRewind(); break;
+		/*case SDLK_r: doRewind(); break;
 		case SDLK_F1: doSaveState(); break;
-		case SDLK_F2: doLoadState(); break;
+		case SDLK_F2: doLoadState(); break;*/
 		case SDLK_1: SDL_SetWindowSize(window, 160, 144); break;
 		case SDLK_2: SDL_SetWindowSize(window, 320, 288); break;
 		case SDLK_3: SDL_SetWindowSize(window, 480, 432); break;
